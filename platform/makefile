@@ -1,59 +1,64 @@
-# default platform is unix-like using X11
-PLATFORM      ?= X11
+PLATFORM          ?= X11
 
-# this is the relative directory where the object files and the final executable
-# is created
-SRC_DIR        = src
-BUILD_DIR      = build
+SRC_DIR            = src
+BUILD_DIR          = build
 
-# select compiler by setting the CC variable below
-# use clang plus custom flags or use CLANG for the recommended flags
-GCC            = gcc -fanalyzer
-CLANG          = clang -fsanitize=address,undefined
-CC             = $(CLANG)
+GCC                = gcc -fanalyzer
+MINGW_GCC_ANALYZER = x86_64-w64-mingw32-gcc -fanalyzer
+MINGW_GCC          = x86_64-w64-mingw32-gcc
+CLANG              = clang -fsanitize=address,undefined
 
-# select debug or release mode by appending CFLAGS_DEBUG or CFLAGS_RELEASE to
-# CFLAGS variable
-CFLAGS_DEBUG   = -g3
-CFLAGS_RELEASE = -O3 -flto
-CFLAGS         = -Wall            \
-                 -Wextra          \
-                 -Wpedantic       \
-                 -std=c99         \
-                  $(CFLAGS_DEBUG) \
+CFLAGS_DEBUG       = -g3
+CFLAGS_RELEASE     = -O3 -flto
+CFLAGS             = -Wall            \
+                     -Wextra          \
+                     -Wpedantic       \
+                     -std=c99         \
+                      $(CFLAGS_DEBUG) \
 
-# check if PLATFORM is X11 and if so, link to libraries for unix-like
-# environment with X11
+SRC                = $(wildcard $(SRC_DIR)/*.c)
+OBJ                = $(patsubst $(SRC_DIR)/%.c, $(BUILD_DIR)/%.o, $(SRC))
+
+INC                = -Isrc           \
+                     -Iglad/include
+
+LIBRARY            = $(BUILD_DIR)/platform.a
+TEST               = $(BUILD_DIR)/platform_test
+
+GLAD               = $(BUILD_DIR)/glad.o
+GLX                = $(BUILD_DIR)/glx.o
+WGL                = $(BUILD_DIR)/wgl.o
+
 ifeq ($(PLATFORM), X11)
 
-LIBS           = -lX11            \
-                 -lrt             \
+CC                 = $(CLANG)
+LIBS               = -lX11            \
+                     -lrt             \
 
-endif
-
-# this part is fully platform independant. it just finds all the source files
-# and adds them to SRC. for each source file, a .o file is made.
-SRC            = $(wildcard $(SRC_DIR)/*.c)
-OBJ            = $(patsubst $(SRC_DIR)/%.c, $(BUILD_DIR)/%.o, $(SRC))
-
-# include the working directory and any library's include directories.
-INC            = -Isrc           \
-                 -Iglad/include
-
-# define library archive files, executables, and object files that will be needed later.
-LIBRARY        = $(BUILD_DIR)/platform_x11.a
-TEST           = $(BUILD_DIR)/platform_test
-GLAD           = $(BUILD_DIR)/glad.o
-GLX            = $(BUILD_DIR)/glx.o
-
-# build targets ===============================================================
-
-$(TEST): $(LIBRARY)
-	$(CC) $(CFLAGS) $< test/main.c -o $(TEST) $(INC) -L. -l:$(LIBRARY) $(LIBS)
-	./build/platform_test
+all: $(TEST)
+	$(TEST)
 
 $(LIBRARY): $(OBJ) $(GLAD) $(GLX)
 	ar rcs $@ $^
+
+endif
+
+ifeq ($(PLATFORM), WIN32)
+
+CC                 = $(MINGW_GCC)
+LIBS               = -lgdi32          \
+                     -lopengl32       \
+
+all: $(TEST)
+	wine $(TEST).exe
+
+$(LIBRARY): $(OBJ) $(GLAD) $(WGL)
+	ar rcs $@ $^
+
+endif
+
+$(TEST): $(LIBRARY)
+	$(CC) $(CFLAGS) $< test/main.c -o $(TEST) $(INC) -L. -l:$(LIBRARY) $(LIBS)
 
 $(BUILD_DIR)/%.o: $(SRC_DIR)/%.c $(BUILD_DIR)
 	$(CC) $(CFLAGS) -c $< -o $@ $(INC)
@@ -63,6 +68,9 @@ $(BUILD_DIR):
 
 $(GLAD): $(BUILD_DIR)
 	$(CC) $(CFLAGS) -c glad/src/gl.c -o $(GLAD) -Iglad/include
+
+$(WGL): $(BUILD_DIR)
+	$(CC) $(CFLAGS) -c glad/src/wgl.c -o $(WGL) -Iglad/include
 
 $(GLX): $(BUILD_DIR)
 	$(CC) $(CFLAGS) -c glad/src/glx.c -o $(GLX) -Iglad/include

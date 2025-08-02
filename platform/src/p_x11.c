@@ -1,3 +1,5 @@
+#ifdef __linux__
+
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -116,3 +118,5 @@ void p_stop(void) {
 
   gladLoaderUnloadGLX();
 }
+
+#endif // __linux__
