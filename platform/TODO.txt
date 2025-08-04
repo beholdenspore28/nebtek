@@ -1,4 +1,9 @@
-###############################################################################
+//===========================================================================//
+
+#define WIN32_LEAN_AND_MEAN
+
+//===========================================================================//
+
 handle WM_CLOSE event on win32 in the WindowProc function
 case WM_CLOSE:
     if (MessageBox(hwnd, L"Really quit?", L"My application", MB_OKCANCEL) == IDOK) {
@@ -8,5 +13,32 @@ case WM_CLOSE:
     // Else: User canceled. Do nothing.
     return 0;
 
-###############################################################################
+//===========================================================================//
+
 set opengl version to 4.6
+
+//===========================================================================//
+
+ensure that win32 and x11 windows both start with the same framebuffer size
+
+//===========================================================================//
+
+handle keyboard and mouse events
+key press
+key release
+mouse button up
+mouse button down
+mouse movemen
+
+//===========================================================================//
+
+handle loopback message events
+handle UDP message events
+
+//===========================================================================//
+
+create an event system to listen to the platform layer
+
+decide if event types should be enumerations or members of a union
+
+//===========================================================================//
