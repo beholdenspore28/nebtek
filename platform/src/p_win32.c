@@ -2,6 +2,8 @@
 #ifdef __MINGW32__
 
 #include <stdio.h>
+
+#define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 
 #include "glad/gl.h"
@@ -23,6 +25,13 @@ _Bool p_is_running(void) { return internal_state.is_running; }
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam,
                             LPARAM lParam) {
   switch (uMsg) {
+
+  case WM_CLOSE: {
+    DestroyWindow(hwnd);
+    internal_state.is_running = 0;
+    return 0;
+  } break;
+
   case WM_SIZE: {
     int width = LOWORD(lParam);  // Macro to get the low-order word.
     int height = HIWORD(lParam); // Macro to get the high-order word.
@@ -34,7 +43,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam,
   return DefWindowProc(hwnd, uMsg, wParam, lParam);
 }
 
-void p_start(void) {
+void p_start(unsigned int width, unsigned int height) {
 
   HINSTANCE hInstance = GetModuleHandle(NULL);
   STARTUPINFO si;
@@ -62,7 +71,7 @@ void p_start(void) {
                      WS_OVERLAPPEDWINDOW, // Window style
 
                      // Size and position
-                     CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT,
+                     CW_USEDEFAULT, CW_USEDEFAULT, width, height,
 
                      NULL,      // Parent window
                      NULL,      // Menu
@@ -120,10 +129,8 @@ void p_start(void) {
 
   // Set the desired OpenGL version:
   int attributes[] = {
-      WGL_CONTEXT_MAJOR_VERSION_ARB,
-      3, // Set the MAJOR version of OpenGL to 3
-      WGL_CONTEXT_MINOR_VERSION_ARB,
-      2, // Set the MINOR version of OpenGL to 2
+      WGL_CONTEXT_MAJOR_VERSION_ARB, 4,
+      WGL_CONTEXT_MINOR_VERSION_ARB, 6,
       WGL_CONTEXT_FLAGS_ARB,
       WGL_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB, // Set our OpenGL context to be
                                               // forward compatible
@@ -157,6 +164,8 @@ void p_start(void) {
   ShowWindow(internal_state.hwnd, nCmdShow);
 
   internal_state.is_running = 1;
+  internal_state.width = width;
+  internal_state.height = height;
 }
 
 void p_process_events(void) {

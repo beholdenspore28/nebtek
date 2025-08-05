@@ -11,10 +11,10 @@
 #include <glad/gl.h>
 #include <glad/glx.h>
 
-const int window_width = 800, window_height = 480;
-
 struct p_state {
   _Bool is_running;
+  unsigned int width, height;
+
   Display *display;
   Window window;
   GLXContext context;
@@ -26,7 +26,7 @@ static struct p_state internal_state = {0};
 
 _Bool p_is_running(void) { return internal_state.is_running; }
 
-void p_start(void) {
+void p_start(unsigned int width, unsigned int height) {
   internal_state.display = XOpenDisplay(NULL);
   if (internal_state.display == NULL) {
     printf("cannot connect to X server\n");
@@ -58,8 +58,8 @@ void p_start(void) {
   attributes.colormap = internal_state.colormap;
 
   internal_state.window =
-      XCreateWindow(internal_state.display, root, 0, 0, window_width,
-                    window_height, 0, internal_state.visual_info->depth,
+      XCreateWindow(internal_state.display, root, 0, 0, width,
+                    height, 0, internal_state.visual_info->depth,
                     InputOutput, internal_state.visual_info->visual,
                     CWColormap | CWEventMask, &attributes);
 
@@ -85,13 +85,14 @@ void p_start(void) {
   printf("Loaded GL %d.%d\n", GLAD_VERSION_MAJOR(gl_version),
          GLAD_VERSION_MINOR(gl_version));
 
-  XWindowAttributes gwa;
-  XGetWindowAttributes(internal_state.display, internal_state.window, &gwa);
-  glViewport(0, 0, gwa.width, gwa.height);
+  glViewport(0, 0, width, height);
   glClearColor(0.4, 0.5, 0.6, 1.0);
 
   internal_state.is_running = true;
+  internal_state.width = width;
+  internal_state.height = height;
 }
+
 
 void p_process_events(void) {
   while (XPending(internal_state.display)) {

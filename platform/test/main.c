@@ -6,7 +6,7 @@
 int main() {
   printf("rev up those fryers!");
 
-  p_start();
+  p_start(640, 480);
 
   glClearColor(0.35, 0.325, 0.732,1);
 

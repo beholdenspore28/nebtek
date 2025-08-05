@@ -4,31 +4,7 @@
 
 //===========================================================================//
 
-handle WM_CLOSE event on win32 in the WindowProc function
-case WM_CLOSE:
-    if (MessageBox(hwnd, L"Really quit?", L"My application", MB_OKCANCEL) == IDOK) {
-        DestroyWindow(hwnd);
-        internal_state.is_running = 0;
-    }
-    // Else: User canceled. Do nothing.
-    return 0;
-
-//===========================================================================//
-
-set opengl version to 4.6
-
-//===========================================================================//
-
 ensure that win32 and x11 windows both start with the same framebuffer size
-
-//===========================================================================//
-
-handle keyboard and mouse events
-key press
-key release
-mouse button up
-mouse button down
-mouse movemen
 
 //===========================================================================//
 
@@ -42,3 +18,28 @@ create an event system to listen to the platform layer
 decide if event types should be enumerations or members of a union
 
 //===========================================================================//
+
+enum { INPUT_KEYS_MAX = 512 };
+static bool input_keys[INPUT_KEYS_MAX] = {false};
+
+bool engine_key_get(int keysym) {
+  const KeyCode keycode =
+      XKeysymToKeycode(engine_window_instance.display, keysym);
+  return input_keys[keycode];
+}
+
+case KeyPress: {
+  if (input_keys[xev.xkey.keycode] == 0) {
+    input_keys[xev.xkey.keycode] = 1;
+    // engine_log("pressed keycode %d", xev.xkey.keycode);
+  }
+} break;
+
+case KeyRelease: {
+  input_keys[xev.xkey.keycode] = 0;
+  // engine_log("released keycode %d", xev.xkey.keycode);
+} break;
+
+//===========================================================================//
+
+replace all return -1 in p_start with exit(1);
