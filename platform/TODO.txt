@@ -1,13 +1,5 @@
 //===========================================================================//
 
-#define WIN32_LEAN_AND_MEAN
-
-//===========================================================================//
-
-ensure that win32 and x11 windows both start with the same framebuffer size
-
-//===========================================================================//
-
 handle loopback message events
 handle UDP message events
 

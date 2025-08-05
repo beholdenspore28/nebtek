@@ -104,8 +104,6 @@ void p_process_events(void) {
     }
   }
 
-  glClear(GL_COLOR_BUFFER_BIT);
-
   glXSwapBuffers(internal_state.display, internal_state.window);
 }
 
